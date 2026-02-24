@@ -27,35 +27,6 @@ export const FoodGeneration = () => {
     setExtractedInfo([]);
 
     try {
-      // Step 1: Extract info using FLAN-T5
-      const infoResponse = await fetch("/api/extract", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-      const infoResult = await infoResponse.json();
-
-      const outputText = infoResult || "";
-
-      const ingredients = outputText.split(",").map((item: string) => item.trim()) || "";
-
-      // Parse response
-      setExtractedInfo(ingredients);
-
-      // Step 2: Generate image
-      const imageResponse = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const imageResult = await imageResponse.json();
-      if (!imageResponse.ok || imageResult.error) {
-        setError("Failed to generate image");
-        return;
-      }
-      setResultImage(imageResult.image);
     } catch (error) {
       console.error("Error:", error);
       setError("Something went wrong. Please try again.");

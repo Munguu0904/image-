@@ -65,20 +65,6 @@ export function CaptureImage() {
 
     try {
       const base64Image = image.split(",")[1];
-
-      const response = await fetch("/api/caption", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64Image }),
-      });
-
-      const result = await response.json();
-
-      if (result?.error) {
-        console.error(result.error);
-        setCaption("Failed to generate caption. Try again later.");
-      } else {
-      }
     } catch (error) {
       console.error(error);
       setCaption("An error occurred.");
