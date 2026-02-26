@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+const openai = new OpenAI({
+  apiKey: process.env.OPEN_AI_API_KEY,
+});
+
 export async function POST(req: Request) {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
   try {
-    // 1. Frontend-ээс явуулж байгаа нэртэй яг ижилхэн 'image' гэж авна
-    const { image } = await req.json();
-
-    if (!image) {
-      return NextResponse.json({ error: "Зураг ирсэнгүй" }, { status: 400 });
-    }
+    const { imageUrl } = await req.json();
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -26,9 +21,7 @@ export async function POST(req: Request) {
             },
             {
               type: "image_url",
-              image_url: {
-                url: image, // Энд 'imageUrl' биш 'image' байх ёстой
-              },
+              image_url: { url: imageUrl },
             },
           ],
         },
@@ -38,6 +31,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ output: response.choices[0].message.content });
   } catch (error: any) {
     console.error("OpenAI API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Алдаа гарлаа" }, { status: 500 });
   }
 }
