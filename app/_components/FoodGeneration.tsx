@@ -16,49 +16,26 @@ export const FoodGeneration = () => {
   const [error, setError] = useState<string | null>(null);
 
   const generateImageAndExtract = async () => {
-    if (!prompt.trim()) {
-      setError("Please enter a prompt first");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
-    setResultImage(null);
-    setExtractedInfo([]);
 
     try {
-      const [imageRes, extractRes] = await Promise.all([
-        fetch("/api/extract", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
-        }),
-        fetch("/api/extract", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
-        }),
-      ]);
+      const imgRes = await fetch("/api/generation", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+      });
+      const imgData = await imgRes.json();
+      if (!imgData.url) throw new Error(imgData.error);
+      setResultImage(imgData.url);
 
-      const imageData = await imageRes.json();
-      const extractData = await extractRes.json();
-
-      if (imageData.url) {
-        setResultImage(imageData.url);
-      } else {
-        console.error("Image error:", imageData.error);
-      }
-
-      if (extractData.ingredients) {
-        setExtractedInfo(extractData.ingredients);
-      }
-
-      if (!imageData.url && !extractData.ingredients) {
-        throw new Error("Both services failed");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setError("Something went wrong. Please try again.");
+      const extRes = await fetch("/api/extract", {
+        method: "POST",
+        body: JSON.stringify({ imageUrl: imgData.url }),
+      });
+      const extData = await extRes.json();
+      setExtractedInfo(extData.ingredients);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -103,10 +80,14 @@ export const FoodGeneration = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {extractedInfo && (
-                <div className="flex flex-wrap items-center gap-2 p-4 border rounded-lg card">
-                  <h2 className="mb-2 text-lg font-semibold">Extracted Info</h2>
-                  {extractedInfo}
+              {extractedInfo && extractedInfo.length > 0 && (
+                <div className="p-4">
+                  <h2 className="mb-3 text-lg font-semibold">Extracted Info</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {extractedInfo.map((ingredient, index) => (
+                      <div key={index}>{ingredient}</div>
+                    ))}
+                  </div>
                 </div>
               )}
               {resultImage && (
